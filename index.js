@@ -335,6 +335,9 @@ mongoose.connect(process.env.MONGODB_URI)
 
 
 
+app.get("/", (req, res) => {
+  res.send("Backend is running on Vercel!");
+});
 
 
 
