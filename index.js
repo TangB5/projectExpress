@@ -394,12 +394,22 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
-// Middleware pour vérifier le token dans les cookies
+app.post("/api/logout", (req, res) => {
+  res.clearCookie("authToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+  });
+  res.json({ success: true });
+});
+
+
 app.get("/api/session", async (req, res) => {
-  const token = req.cookies.authToken; // Ici tu récupères le cookie httpOnly
+  const token = req.cookies.authToken; 
 
   if (!token) {
-    return res.status(200).json(null); // Aucun token, l'utilisateur n'est pas authentifié
+    return res.status(200).json(null); 
   }
 
   try {
