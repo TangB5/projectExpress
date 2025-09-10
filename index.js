@@ -395,14 +395,27 @@ app.post("/api/auth/login", async (req, res) => {
 });
 
 app.post("/api/logout", (req, res) => {
-  res.clearCookie("authToken", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-  });
-  res.json({ success: true });
+  try {
+    const token = req.cookies?.authToken;
+
+    if (!token) {
+      return res.status(401).json({ success: false, message: "Vous n'êtes pas connecté." });
+    }
+
+    res.clearCookie("authToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+
+    res.json({ success: true, message: "Déconnexion réussie." });
+  } catch (error) {
+    console.error("Erreur lors de la déconnexion :", error);
+    res.status(500).json({ success: false, message: "Erreur serveur lors de la déconnexion." });
+  }
 });
+
 
 
 app.get("/api/session", async (req, res) => {
