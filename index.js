@@ -419,27 +419,35 @@ app.post("/api/logout", (req, res) => {
 
 
 app.get("/api/session", async (req, res) => {
-  const token = req.cookies.authToken; 
+  const token = req.cookies.authToken;
 
   if (!token) {
-    return res.status(200).json(null); 
+    return res.status(200).json(null);
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET); // Vérification du JWT
-    const user = await User.findById(decoded._id).select('-password'); // Trouver l'utilisateur, sans le mot de passe
+    const decoded= jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded._id).select("-password");
 
     if (!user) {
-      return res.status(200).json(null); // Utilisateur non trouvé, session expirée ou invalide
+      return res.status(200).json(null);
     }
 
-    // Si tout va bien, renvoie les informations utilisateur
-    res.json({ userId: user._id, role: user.role , email: user.email });
+   
+    res.status(200).json({
+      user: {
+        id: user._id.toString(),
+        name: user.name || "",
+        email: user.email,
+        roles: user.role ? [user.role] : [],
+      },
+    });
   } catch (error) {
     console.error("Erreur de vérification de session :", error);
-    return res.status(200).json(null); // Si erreur de vérification
+    return res.status(200).json(null);
   }
 });
+
 
 
 app.post('/api/orders', async (req, res) => {
