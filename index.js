@@ -356,19 +356,16 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1️⃣ Vérifier si l'utilisateur existe
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
-    // 2️⃣ Vérifier le mot de passe
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Email ou mot de passe incorrect" });
     }
 
-    // 3️⃣ Créer un JWT
     const token = jwt.sign(
       { _id: user._id, role: user.role, email: user.email },
       process.env.JWT_SECRET,
@@ -378,12 +375,11 @@ app.post("/api/auth/login", async (req, res) => {
     res.cookie("authToken", token, {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
-  sameSite: "strict",
-  maxAge: 7 * 24 * 60 * 60 * 1000
+  sameSite: "lax",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 
 
-    // 5️⃣ Retourner une réponse
     res.status(200).json({
       message: "Connexion réussie",
       user: { id: user._id, email: user.email, role: user.role }
