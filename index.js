@@ -372,10 +372,13 @@ app.post("/api/auth/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.cookie("authToken", token, {
+   res.cookie("authToken", token, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production", 
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  path: "/",
+
+
   maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 
