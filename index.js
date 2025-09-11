@@ -402,11 +402,12 @@ app.post("/api/logout", (req, res) => {
     }
 
     res.clearCookie("authToken", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  path: "/",
+});
+
 
     res.json({ success: true, message: "Déconnexion réussie." });
   } catch (error) {
