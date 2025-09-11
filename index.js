@@ -13,7 +13,7 @@ import jwt from "jsonwebtoken";
 import Order from './models/commande.model.js';
 import { createClient } from '@supabase/supabase-js';
 import cookieParser from 'cookie-parser';
-
+import { requireAuth, requireRole } from "./middlewares/auth.js";
 
 dotenv.config();
 
@@ -45,7 +45,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 const BUCKET_NAME = 'meublemoderne';
 
-app.post('/api/auth/createProduct', async (req, res) => {
+app.post('/api/auth/createProduct', requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const { 
       name, 
@@ -119,7 +119,7 @@ app.get('/api/product/:id', async (req, res) => {
 
 
 //update product
-app.put('/api/product/:id', (req, res, next) => {
+app.put('/api/product/:id', requireAuth, requireRole("admin"), async (req, res) => {
   const contentType = req.headers['content-type'] || '';
   if (contentType.includes('multipart/form-data')) {
     upload.single('image')(req, res, (err) => {
@@ -193,7 +193,7 @@ app.put('/api/product/:id', (req, res, next) => {
 });
 
 //delete product
-app.delete('/api/product/:id', async (req, res) => {
+app.delete('/api/product/:id', requireAuth, requireRole("admin"), async (req, res) => {
   try {
     const { id } = req.params;  
     const product = await Product.findByIdAndDelete(id);
@@ -448,7 +448,7 @@ app.get("/api/session", async (req, res) => {
 
 
 
-app.post('/api/orders', async (req, res) => {
+app.post('/api/orders', requireAuth, async (req, res) => {
   try {
     const { userId, items } = req.body;
 
