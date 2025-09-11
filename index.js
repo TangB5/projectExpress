@@ -367,7 +367,7 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { _id: user._id, role: user.role, email: user.email },
+      { _id: user._id, roles: [user.role], email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -440,7 +440,7 @@ app.get("/api/session", async (req, res) => {
         id: user._id.toString(),
         name: user.name || "",
         email: user.email,
-        roles: user.role ? [user.role] : [],
+        roles: [user.role],
       },
     });
   } catch (error) {
