@@ -422,18 +422,19 @@ app.get("/api/session", async (req, res) => {
   const token = req.cookies.authToken;
 
   if (!token) {
-    return res.status(200).json(null);
+    // Statut 401 pour un token manquant
+    return res.status(401).json({ message: "Aucun token d'authentification fourni." });
   }
 
   try {
-    const decoded= jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded._id).select("-password");
 
     if (!user) {
-      return res.status(200).json(null);
+      // Statut 401 si l'utilisateur n'est pas trouvé
+      return res.status(401).json({ message: "Utilisateur non trouvé." });
     }
 
-   
     res.status(200).json({
       user: {
         id: user._id.toString(),
@@ -444,7 +445,8 @@ app.get("/api/session", async (req, res) => {
     });
   } catch (error) {
     console.error("Erreur de vérification de session :", error);
-    return res.status(200).json(null);
+    // Statut 401 pour toute autre erreur de token (expiré, invalide, etc.)
+    return res.status(401).json({ message: "Token invalide ou expiré." });
   }
 });
 
