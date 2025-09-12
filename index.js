@@ -385,7 +385,7 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.status(200).json({
       message: "Connexion réussie",
-      user: { id: user._id, email: user.email, role: user.role }
+      user: { id: user._id, email: user.email, roles: user.role ? [user.role] : [] , name: user.name || "" },
     });
   } catch (error) {
     console.error(error);
@@ -440,12 +440,12 @@ app.get("/api/session", async (req, res) => {
         id: user._id.toString(),
         name: user.name || "",
         email: user.email,
-        roles: [user.role],
+        roles: user.role ? [user.role] : [],
       },
     });
   } catch (error) {
     console.error("Erreur de vérification de session :", error);
-    // Statut 401 pour toute autre erreur de token (expiré, invalide, etc.)
+
     return res.status(401).json({ message: "Token invalide ou expiré." });
   }
 });
