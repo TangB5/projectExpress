@@ -401,12 +401,15 @@ app.post("/api/logout", (req, res) => {
       return res.status(401).json({ success: false, message: "Vous n'êtes pas connecté." });
     }
 
-    res.clearCookie("authToken", {
+    res.cookie("authToken", token, {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
+  secure: process.env.NODE_ENV === "production", // true en prod
   sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  domain: process.env.NODE_ENV === "production" ? ".vercel.app" : undefined,
   path: "/",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 });
+
 
 
     res.json({ success: true, message: "Déconnexion réussie." });
