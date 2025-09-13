@@ -367,7 +367,7 @@ app.post("/api/auth/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { _id: user._id, roles: [user.role], email: user.email },
+      { _id: user._id, roles: [user.role], email: user.email, name: user.name || "" },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -460,7 +460,6 @@ app.post('/api/orders', requireAuth, async (req, res) => {
       return res.status(400).json({ message: 'Informations de commande manquantes' });
     }
 
-    // Calculer le total et vérifier le stock
     let total = 0;
     for (const item of items) {
       const product = await Product.findById(item.productId);
@@ -473,7 +472,6 @@ app.post('/api/orders', requireAuth, async (req, res) => {
       item.price = product.price;
       total += product.price * item.quantity;
 
-      // Décrémenter le stock
       product.stock -= item.quantity;
       if (product.stock <= 0) {
         product.status = 'Rupture';
@@ -506,9 +504,8 @@ app.get('/api/orders', async (req, res) => {
       .populate('items.productId', 'name price')
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 }); // Trie par date de création décroissante
-
-    // Récupérer le nombre total de commandes pour la pagination
+      .sort({ createdAt: -1 }); 
+      
     const totalOrders = await Order.countDocuments({});
 
     // Renvoyer les données et le total
