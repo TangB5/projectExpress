@@ -24,7 +24,7 @@ const allowedOrigins = [
 ];
 const corsOptions = {
     origin: (origin, callback) => {
-        // Autorise les requêtes sans origine (comme les requêtes de Postman)
+
         if (!origin) return callback(null, true);
         if (allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
