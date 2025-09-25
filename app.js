@@ -32,7 +32,7 @@ const corsOptions = {
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true, // Très important pour les cookies et les tokens
+    credentials: true,
 };
 app.use(cors(corsOptions));
 
