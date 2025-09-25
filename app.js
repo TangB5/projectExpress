@@ -4,7 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import swaggerUi from 'swagger-ui-express';
-import swaggerSpec from './src/swagger.js';
+import swaggerSpec from './src/docs/swagger.js';
 
 // Importez vos routes ici
 import productRoutes from './src/routes/product.routes.js';
