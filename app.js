@@ -14,7 +14,7 @@ const app = express();
 
 // Middleware
 const allowedOrigins = [
-  'http://localhost:3001',
+  'http://localhost:5000',
   'https://projectnext-eight.vercel.app'
 ];
 app.use(cors({
