@@ -16,9 +16,10 @@ dotenv.config();
 
 const app = express();
 
-// Middleware CORS
+
 const allowedOrigins = [
     'http://localhost:3001',
+    'http://localhost:5000',
     'https://projectnext-eight.vercel.app',
     'https://memo-backend-sigma.vercel.app'
 ];
