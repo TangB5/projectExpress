@@ -14,11 +14,11 @@ const getCookieOptions = (isProduction, expires) => {
     if (isProduction) {
         options.secure = true;
         options.sameSite = "none";
-        options.domain = ".vercel.app";
+
     } else {
         options.secure = false;
         options.sameSite = "lax";
-        // On laisse 'domain' à undefined pour localhost
+
     }
 
     return options;
