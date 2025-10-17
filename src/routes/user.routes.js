@@ -1,13 +1,19 @@
 import express from 'express';
+import multer from 'multer';
 import {
-  getAllUsers,
-  getUserById,
-  createUser,
-  updateUser,
+    getAllUsers,
+    getUserById,
+    createUser,
+    updateUser,
+    deleteUser
 } from '../controllers/user.controller.js';
 import { requireAuth, requireRole } from '../middlewares/auth.js';
 
 const router = express.Router();
+
+// Configuration Multer pour upload d'avatar (en mémoire)
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 /**
  * @swagger
@@ -34,7 +40,7 @@ const router = express.Router();
  *       500:
  *         description: Erreur serveur.
  */
-router.get('/', getAllUsers);
+router.get('/', requireAuth, requireRole('admin'), getAllUsers);
 
 /**
  * @swagger
@@ -61,7 +67,7 @@ router.get('/', getAllUsers);
  *       500:
  *         description: Erreur serveur.
  */
-router.get('/:id', getUserById);
+router.get('/:id', requireAuth, getUserById);
 
 /**
  * @swagger
@@ -72,9 +78,29 @@ router.get('/:id', getUserById);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserRequest'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               roles:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               phone:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               address:
+ *                 type: object
+ *               preferences:
+ *                 type: object
  *     responses:
  *       201:
  *         description: Utilisateur créé avec succès.
@@ -87,7 +113,7 @@ router.get('/:id', getUserById);
  *       500:
  *         description: Erreur serveur.
  */
-router.post('/', createUser);
+router.post('/', upload.single('avatar'), createUser);
 
 /**
  * @swagger
@@ -105,9 +131,23 @@ router.post('/', createUser);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UserUpdateRequest'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *               address:
+ *                 type: object
+ *               preferences:
+ *                 type: object
  *     responses:
  *       200:
  *         description: Utilisateur mis à jour avec succès.
@@ -120,6 +160,29 @@ router.post('/', createUser);
  *       500:
  *         description: Erreur serveur.
  */
-router.put('/:id', updateUser);
+router.put('/:id', requireAuth, upload.single('avatar'), updateUser);
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Supprime un utilisateur.
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: L'ID de l'utilisateur à supprimer.
+ *     responses:
+ *       200:
+ *         description: Utilisateur supprimé avec succès.
+ *       404:
+ *         description: Utilisateur non trouvé.
+ *       500:
+ *         description: Erreur serveur.
+ */
+router.delete('/:id', requireAuth, requireRole('admin'), deleteUser);
 
 export default router;

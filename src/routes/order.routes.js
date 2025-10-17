@@ -1,11 +1,12 @@
 import express from 'express';
 import {
-  createOrder,
-  getAllOrders,
-  getOrderById,
-  updateOrderStatus,
+    createOrder,
+    getAllOrders,
+    getOrderById,
+    updateOrderStatus,
+    getCartCount,
 } from '../controllers/order.controller.js';
-import { requireAuth, requireRole } from '../middlewares/auth.js';
+import {requireAuth, requireRole} from '../middlewares/auth.js';
 
 const router = express.Router();
 
@@ -150,5 +151,30 @@ router.get('/:id', getOrderById);
  *         description: Erreur serveur.
  */
 router.put('/:id', updateOrderStatus);
+/**
+ * @swagger
+ * /orders/cart/count:
+ *   get:
+ *     summary: Récupère le nombre total d'articles dans le panier pour l'utilisateur connecté.
+ *     tags: [Orders]
+ *     security:
+ *       - cookieAuth: []
+ *     responses:
+ *       200:
+ *         description: Nombre total d'articles dans le panier.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ *                   example: 5
+ *       401:
+ *         description: Utilisateur non authentifié.
+ *       500:
+ *         description: Erreur serveur.
+ */
+router.get('/cart/count', requireAuth, getCartCount);
 
 export default router;
