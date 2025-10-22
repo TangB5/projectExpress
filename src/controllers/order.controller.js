@@ -1,7 +1,7 @@
 import Order from '../models/order.model.js';
 import Product from '../models/product.model.js';
 
-// Fonction utilitaire pour vérifier stock et calculer total
+// ---------- Fonction utilitaire ----------
 const calculateOrderTotal = async (items) => {
     let total = 0;
 
@@ -16,7 +16,6 @@ const calculateOrderTotal = async (items) => {
         item.price = product.price;
         total += product.price * item.quantity;
 
-        // Mise à jour du stock
         product.stock -= item.quantity;
         if (product.stock <= 0) {
             product.status = 'Rupture';
@@ -28,7 +27,7 @@ const calculateOrderTotal = async (items) => {
     return total;
 };
 
-// Crée une nouvelle commande
+// ---------- Crée une nouvelle commande ----------
 export const createOrder = async (req, res) => {
     try {
         const { userId, items, paymentMethod, details } = req.body;
@@ -43,11 +42,11 @@ export const createOrder = async (req, res) => {
             userId,
             items,
             total,
+            status: "En attente",
             paymentMethod: paymentMethod || 'non précisé',
             details: details || {},
         });
 
-        // Populer userId et items.productId
         await newOrder.populate([
             { path: 'userId', select: 'name email' },
             { path: 'items.productId', select: 'name price' }
@@ -60,29 +59,15 @@ export const createOrder = async (req, res) => {
     }
 };
 
-// Récupère toutes les commandes avec pagination
-// Récupère toutes les commandes avec pagination + filtrage par utilisateur et statut
+// ---------- Récupère toutes les commandes ----------
 export const getAllOrders = async (req, res) => {
     try {
-        const {
-            userId,
-            status,
-            search,
-            page = 1,
-            limit = 10,
-        } = req.query;
-
+        const { userId, status, search, page = 1, limit = 10 } = req.query;
         const skip = (page - 1) * limit;
         const query = {};
 
-
         if (userId) query.userId = userId;
-
-        // Filtre par statut si défini
-        if (status && status !== "all") {
-            query.status = status;
-        }
-
+        if (status && status !== "all") query.status = status;
 
         if (search) {
             query.$or = [
@@ -91,7 +76,6 @@ export const getAllOrders = async (req, res) => {
             ];
         }
 
-
         const orders = await Order.find(query)
             .populate("userId", "name email phone avatar")
             .populate("items.productId", "name price images category")
@@ -99,9 +83,7 @@ export const getAllOrders = async (req, res) => {
             .skip(skip)
             .limit(parseInt(limit));
 
-
         const totalOrders = await Order.countDocuments(query);
-
 
         const statusAggregation = await Order.aggregate([
             { $match: query },
@@ -124,8 +106,26 @@ export const getAllOrders = async (req, res) => {
     }
 };
 
+// ---------- Récupère la dernière commande ----------
+export const getLatestOrder = async (req, res) => {
+    try {
+        const latestOrder = await Order.findOne()
+            .populate('userId', 'name email')
+            .populate('items.productId', 'name price')
+            .sort({ createdAt: -1 });
 
-// Récupère une commande par son ID
+        if (!latestOrder) {
+            return res.status(404).json({ message: 'Aucune commande trouvée' });
+        }
+
+        res.status(200).json(latestOrder.toJSON());
+    } catch (error) {
+        console.error("❌ Erreur lors de la récupération de la dernière commande :", error);
+        res.status(500).json({ message: error.message || 'Erreur serveur' });
+    }
+};
+
+// ---------- Récupère une commande par ID ----------
 export const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -141,14 +141,23 @@ export const getOrderById = async (req, res) => {
     }
 };
 
-// Met à jour le statut d’une commande
+// ---------- Met à jour le statut ----------
+// CONTRÔLEUR BACKEND MIS À JOUR
 export const updateOrderStatus = async (req, res) => {
     try {
-        const { status } = req.body;
+        const { status, paymentMethod } = req.body;
+
+        const updateFields = {};
+        if (status) updateFields.status = status;
+        if (paymentMethod) updateFields.paymentMethod = paymentMethod;
+
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({ message: 'Aucun champ valide fourni pour la mise à jour.' });
+        }
 
         const order = await Order.findByIdAndUpdate(
             req.params.id,
-            { status },
+            updateFields,
             { new: true }
         )
             .populate('userId', 'name email')
@@ -162,26 +171,24 @@ export const updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: error.message || 'Erreur serveur' });
     }
 };
-// Récupère le nombre total d'articles dans le panier pour un utilisateur
-export const getCartCount = async (req, res) => {
+
+// ---------- Compte les articles du panier ----------
+export const getSubmittedOrdersCount = async (req, res) => {
     try {
-        const userId = req.user?._id; // Assure-toi que le middleware auth ajoute req.user
+        const userId = req.user?._id;
         if (!userId) {
             return res.status(401).json({ message: "Utilisateur non authentifié" });
         }
 
-        // On récupère toutes les commandes de l'utilisateur avec status "panier" (ou équivalent)
-        const orders = await Order.find({ userId, status: "panier" });
 
-        // Total des articles
-        const count = orders.reduce((total, order) => {
-            const orderCount = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0);
-            return total + (orderCount || 0);
-        }, 0);
+        const submittedOrdersCount = await Order.countDocuments({
+            userId,
+            status: { $ne: "panier" }
+        });
 
-        res.status(200).json({ count });
+        res.status(200).json({ count: submittedOrdersCount });
     } catch (error) {
-        console.error("Erreur récupération count panier :", error);
+        console.error("Erreur récupération count commandes soumises :", error);
         res.status(500).json({ message: error.message || "Erreur serveur" });
     }
 };

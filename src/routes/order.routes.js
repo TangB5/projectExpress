@@ -4,7 +4,8 @@ import {
     getAllOrders,
     getOrderById,
     updateOrderStatus,
-    getCartCount,
+    getSubmittedOrdersCount,
+    getLatestOrder,
 } from '../controllers/order.controller.js';
 import {requireAuth, requireRole} from '../middlewares/auth.js';
 
@@ -113,6 +114,22 @@ router.get('/', getAllOrders);
  *       500:
  *         description: Erreur serveur.
  */
+/**
+ * @swagger
+ * /orders/latest:
+ *   get:
+ *     summary: Récupère la dernière commande créée.
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Dernière commande trouvée.
+ *       404:
+ *         description: Aucune commande trouvée.
+ *       500:
+ *         description: Erreur serveur.
+ */
+router.get('/latest', getLatestOrder);
+
 router.get('/:id', getOrderById);
 
 /**
@@ -175,6 +192,6 @@ router.put('/:id', updateOrderStatus);
  *       500:
  *         description: Erreur serveur.
  */
-router.get('/cart/count', requireAuth, getCartCount);
+router.get('/cart/count', requireAuth, getSubmittedOrdersCount);
 
 export default router;

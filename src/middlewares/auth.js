@@ -22,6 +22,7 @@ export const requireAuth = (req, res, next) => {
 export const requireRole = (role) => {
   return (req, res, next) => {
     // req.user est défini par le middleware requireAuth
+      console.log("User from JWT:", req.user);
     if (!req.user || !req.user.roles.includes(role)) {
       return res.status(403).json({ message: "Accès refusé. Vous n'avez pas le rôle requis." });
     }

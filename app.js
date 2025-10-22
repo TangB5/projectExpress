@@ -11,6 +11,7 @@ import productRoutes from './src/routes/product.routes.js';
 import userRoutes from './src/routes/user.routes.js';
 import authRoutes from './src/routes/auth.routes.js';
 import orderRoutes from './src/routes/order.routes.js';
+import settingsRoutes from "./src/routes/settings.routes.js";
 
 dotenv.config();
 
@@ -48,6 +49,8 @@ app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/settings', settingsRoutes);
+
 
 app.get("/", (req, res) => {
     res.send("Backend is running on Vercel!");
