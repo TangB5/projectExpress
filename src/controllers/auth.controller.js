@@ -2,6 +2,7 @@
 import User from '../models/user.model.js';
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import 'dotenv/config';
 
 /**
  * POST /api/auth/login
@@ -34,17 +35,16 @@ export const loginUser = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
-
-        // ✅ Envoyer le token dans un cookie HTTP-only
+        const isProduction = process.env.NODE_ENV === "production";
         res.cookie("authToken", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
+            secure: isProduction,
+            sameSite: isProduction ? "None" : "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
             path: "/"
         });
 
-        // ✅ Répondre avec les infos de l'utilisateur
+
         res.status(200).json({
             message: "Connexion réussie",
             user: {
