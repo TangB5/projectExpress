@@ -6,34 +6,27 @@ import {
     updateShippingSettings,
     updateNotificationSettings,
 } from '../controllers/settings.controller.js';
-import { requireAuth, requireRole } from '../middlewares/auth.js';
 
 const router = express.Router();
-
-router.use(requireAuth, requireRole);
 
 /**
  * @swagger
  * tags:
  *   - name: Settings
- *     description: Gestion des paramètres de la boutique (Admin)
+ *     description: Gestion des paramètres de la boutique (Dev mode, sans auth)
  */
 
 /**
  * @swagger
  * /settings:
  *   get:
- *     summary: Récupère TOUS les paramètres de la boutique.
+ *     summary: Récupère TOUS les paramètres de la boutique (dev mode).
  *     tags: [Settings]
- *     security:
- *       - cookieAuth: []
  *     responses:
  *       200:
  *         description: Succès. Retourne l'objet complet des paramètres.
- *       401:
- *         description: Non autorisé (non connecté).
- *       403:
- *         description: Interdit (pas un administrateur).
+ *       500:
+ *         description: Erreur serveur.
  */
 router.get('/', getSettings);
 
@@ -43,8 +36,6 @@ router.get('/', getSettings);
  *   put:
  *     summary: Met à jour les paramètres généraux (nom, devise, maintenance).
  *     tags: [Settings]
- *     security:
- *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -74,8 +65,6 @@ router.put('/general', updateGeneralSettings);
  *   put:
  *     summary: Met à jour les méthodes de paiement.
  *     tags: [Settings]
- *     security:
- *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -103,8 +92,6 @@ router.put('/payments', updatePaymentSettings);
  *   put:
  *     summary: Met à jour les zones et les coûts de livraison.
  *     tags: [Settings]
- *     security:
- *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -135,8 +122,6 @@ router.put('/shipping', updateShippingSettings);
  *   put:
  *     summary: Met à jour les paramètres de notifications.
  *     tags: [Settings]
- *     security:
- *       - cookieAuth: []
  *     requestBody:
  *       required: true
  *       content:

@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 
 // Méthodes de paiement
 const PaymentMethodSchema = new mongoose.Schema({
-    id: { type: String, required: true }, // ❌ pas de unique ici
+    id: { type: String, required: true },
     name: { type: String, required: true },
     enabled: { type: Boolean, default: false },
     description: { type: String },
@@ -15,7 +15,7 @@ const PaymentMethodSchema = new mongoose.Schema({
 
 // Zones de livraison
 const ShippingZoneSchema = new mongoose.Schema({
-    id: { type: String, required: true }, // ❌ pas de unique ici non plus
+    id: { type: String, required: true },
     name: { type: String, required: true },
     cost: { type: Number, default: 0 },
     enabled: { type: Boolean, default: false },
@@ -32,7 +32,7 @@ const NotificationSettingsSchema = new mongoose.Schema({
 // 🧱 Schéma principal
 // =====================
 const SettingsSchema = new mongoose.Schema({
-    _id: { type: String, default: 'STORE_SETTINGS' }, // ID fixe (singleton)
+    _id: { type: String, default: 'STORE_SETTINGS' },
 
     general: {
         storeName: { type: String, required: true, default: 'ModerneMeuble Cameroun' },
@@ -69,36 +69,34 @@ const SettingsSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-
 // =====================
-// ⚡ Méthode statique optimisée
+// ⚡ Méthodes statiques
 // =====================
 
-// Cache mémoire (évite les requêtes répétées)
+// Cache mémoire
 let cachedSettings = null;
 
+// Récupère le singleton, crée s'il n'existe pas
 SettingsSchema.statics.getSettings = async function () {
-
     if (cachedSettings) return cachedSettings;
 
-
-    let settings = await this.findById('STORE_SETTINGS').lean();
-
+    let settings = await this.findById('STORE_SETTINGS');
     if (!settings) {
-        const newSettings = new this({ _id: 'STORE_SETTINGS' });
-        const saved = await newSettings.save();
-        settings = saved.toObject();
+        settings = new this({ _id: 'STORE_SETTINGS' });
+        await settings.save();
     }
-
 
     cachedSettings = settings;
     return settings;
 };
 
-// Permet d’invalider le cache après une mise à jour
+// Invalide le cache après une mise à jour
 SettingsSchema.statics.invalidateCache = function () {
     cachedSettings = null;
 };
 
+// =====================
+// ⚡ Export
+// =====================
 const Settings = mongoose.model('Settings', SettingsSchema);
 export default Settings;
