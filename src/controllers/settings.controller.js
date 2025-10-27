@@ -1,15 +1,24 @@
 import Settings from '../models/settings.model.js';
 
 // =====================
+// 🔹 Cache mémoire pour GET
+// =====================
+let cachedSettings = null;
+
+// =====================
 // 🔹 Helper pour récupérer/créer les settings
 // =====================
 export const getStoreSettings = async () => {
+    if (cachedSettings) return cachedSettings;
+
     let settings = await Settings.findById('STORE_SETTINGS');
     if (!settings) {
         settings = new Settings({ _id: 'STORE_SETTINGS' });
         await settings.save();
     }
-    return settings;
+
+    cachedSettings = settings;
+    return cachedSettings;
 };
 
 // =====================
@@ -48,6 +57,7 @@ export const updateGeneralSettings = async (req, res) => {
         };
 
         await settings.save();
+        cachedSettings = null; // 🔄 Invalider le cache
         return res.status(200).json({ message: 'Paramètres généraux mis à jour.', general: settings.general });
     } catch (error) {
         console.error("Erreur updateGeneralSettings:", error);
@@ -73,6 +83,7 @@ export const updatePaymentSettings = async (req, res) => {
         });
 
         await settings.save();
+        cachedSettings = null; // 🔄 Invalider le cache
         return res.status(200).json({ message: 'Méthodes de paiement mises à jour.', payments: settings.payments });
     } catch (error) {
         console.error("Erreur updatePaymentSettings:", error);
@@ -100,6 +111,7 @@ export const updateShippingSettings = async (req, res) => {
         });
 
         await settings.save();
+        cachedSettings = null; // 🔄 Invalider le cache
         return res.status(200).json({ message: 'Zones de livraison mises à jour.', shipping: settings.shipping });
     } catch (error) {
         console.error("Erreur updateShippingSettings:", error);
@@ -124,6 +136,7 @@ export const updateNotificationSettings = async (req, res) => {
         };
 
         await settings.save();
+        cachedSettings = null; // 🔄 Invalider le cache
         return res.status(200).json({ message: 'Paramètres de notifications mis à jour.', notifications: settings.notifications });
     } catch (error) {
         console.error("Erreur updateNotificationSettings:", error);
