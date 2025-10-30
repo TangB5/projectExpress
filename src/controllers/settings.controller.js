@@ -65,6 +65,7 @@ export const updateGeneralSettings = async (req, res) => {
     }
 };
 
+
 // =====================
 // ✏️ PUT /api/settings/payments
 // =====================

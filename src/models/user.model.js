@@ -28,7 +28,8 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: false, // optionnel pour les utilisateurs OAuth ou provisoires
+        required: false,
+        select: false, // Ne pas retourner le password par défaut
     },
     phone: {
         type: String,
@@ -55,7 +56,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
-});
+    updatedAt: {
+        type: Date,
+        default: Date.now,
+    },
+}, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
 

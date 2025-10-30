@@ -12,8 +12,13 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // Validation des entrées
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email et mot de passe requis" });
+        }
+
         // Vérifier si l'utilisateur existe
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email }).select('+password');
         if (!user) {
             return res.status(401).json({ message: "Email ou mot de passe incorrect" });
         }
@@ -35,15 +40,15 @@ export const loginUser = async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
+        
         const isProduction = process.env.NODE_ENV === "production";
         res.cookie("authToken", token, {
             httpOnly: true,
             secure: isProduction,
             sameSite: isProduction ? "None" : "Lax",
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 jours
+            maxAge: 7 * 24 * 60 * 60 * 1000,
             path: "/"
         });
-
 
         res.status(200).json({
             message: "Connexion réussie",
@@ -66,7 +71,13 @@ export const loginUser = async (req, res) => {
  */
 export const logoutUser = async (req, res) => {
     try {
-        res.clearCookie("authToken", { path: "/" });
+        const isProduction = process.env.NODE_ENV === "production";
+        res.clearCookie("authToken", {
+            path: "/",
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: isProduction ? "None" : "Lax"
+        });
         res.status(200).json({
             success: true,
             message: "Déconnexion réussie."
