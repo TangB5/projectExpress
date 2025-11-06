@@ -1,8 +1,10 @@
-// src/controllers/auth.controller.ts
 import User from '../models/user.model.js';
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import 'dotenv/config';
+
+const BACKEND_DOMAIN = process.env.BACKEND_DOMAIN;
+const isProduction = process.env.NODE_ENV === "production";
 
 /**
  * POST /api/auth/login
@@ -12,43 +14,36 @@ export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validation des entrées
         if (!email || !password) {
             return res.status(400).json({ message: "Email et mot de passe requis" });
         }
 
-        // Vérifier si l'utilisateur existe
         const user = await User.findOne({ email }).select('+password');
         if (!user) {
             return res.status(401).json({ message: "Email ou mot de passe incorrect" });
         }
 
-        // Vérifier le mot de passe
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({ message: "Email ou mot de passe incorrect" });
         }
 
-        // Générer le JWT
         const token = jwt.sign(
-            {
-                _id: user._id,
-                roles: user.roles || [],
-                email: user.email,
-                name: user.name || ""
-            },
+            { _id: user._id, roles: user.roles || [], email: user.email, name: user.name || "" },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
-        
-        const isProduction = process.env.NODE_ENV === "production";
-        res.cookie("authToken", token, {
+
+        const cookieOptions = {
             httpOnly: true,
             secure: isProduction,
             sameSite: isProduction ? "None" : "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000,
-            path: "/"
-        });
+            path: "/",
+            ...(isProduction && BACKEND_DOMAIN && { domain: BACKEND_DOMAIN })
+        };
+
+        res.cookie("authToken", token, cookieOptions);
 
         res.status(200).json({
             message: "Connexion réussie",
@@ -65,19 +60,26 @@ export const loginUser = async (req, res) => {
     }
 };
 
+
+
 /**
  * POST /api/auth/logout
  * Supprime le cookie d'authentification
  */
 export const logoutUser = async (req, res) => {
     try {
-        const isProduction = process.env.NODE_ENV === "production";
-        res.clearCookie("authToken", {
+        // --- Configuration du cookie de suppression avec DOMAIN pour la production ---
+        const cookieOptions = {
             path: "/",
             httpOnly: true,
             secure: isProduction,
-            sameSite: isProduction ? "None" : "Lax"
-        });
+            sameSite: isProduction ? "None" : "Lax",
+            // INCLUSION DU DOMAINE: DOIT CORRESPONDRE EXACTEMENT AU COOKIE DE CRÉATION
+            ...(isProduction && BACKEND_DOMAIN && { domain: BACKEND_DOMAIN })
+        };
+
+        res.clearCookie("authToken", cookieOptions);
+
         res.status(200).json({
             success: true,
             message: "Déconnexion réussie."
@@ -87,6 +89,8 @@ export const logoutUser = async (req, res) => {
         res.status(500).json({ success: false, message: "Erreur serveur lors de la déconnexion." });
     }
 };
+
+
 
 /**
  * GET /api/auth/session
